@@ -54,9 +54,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Start upterm session to get running logs
-        uses: lhotari/action-upterm@v1
-
       - name: Build local containers for PR tests
         if: startsWith(github.event_name, 'pull_request')
         env:
@@ -99,7 +96,7 @@ jobs:
 
   test-cases:
     needs: build-containers
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     timeout-minutes: 60
 
     strategy:
@@ -182,6 +179,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: webhook-configuration.tar
+
+      - if: startsWith(matrix.kube.runtime, 'Kubernetes')
+        name: Start upterm session to get running logs
+        uses: lhotari/action-upterm@v1
 
       - if: startsWith(matrix.kube.runtime, 'K3s')
         name: Install K3s
