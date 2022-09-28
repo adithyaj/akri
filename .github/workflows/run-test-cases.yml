@@ -54,6 +54,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Start upterm session to get running logs
+        uses: lhotari/action-upterm@v1
+
       - name: Build local containers for PR tests
         if: startsWith(github.event_name, 'pull_request')
         env:
