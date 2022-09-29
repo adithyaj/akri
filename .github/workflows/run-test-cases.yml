@@ -180,10 +180,6 @@ jobs:
         with:
           name: webhook-configuration.tar
 
-      - if: startsWith(matrix.kube.runtime, 'Kubernetes')
-        name: Start upterm session to get running logs
-        uses: lhotari/action-upterm@v1
-
       - if: startsWith(matrix.kube.runtime, 'K3s')
         name: Install K3s
         env:
@@ -256,6 +252,16 @@ jobs:
           echo 'kubectl' > /tmp/runtime_cmd_to_test.txt
           echo '~/.kube/config' > /tmp/kubeconfig_path_to_test.txt
           until kubectl get node ${HOSTNAME,,} -o jsonpath='{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status}' | grep 'Ready=True'; do echo "waiting for kubernetes to become ready"; sleep 10; done
+
+      - if: always()
+        name: Output System Logs
+        run: |
+          echo "Kubelet Logs:"
+          sudo journalctl -xeu kubelet --no-pager
+          echo "\nContainerd Logs"
+          sudo journalctl -xeu containerd --no-pager
+          echo "\nDocker Logs"
+          sudo journalctl -xeu docker --no-pager
 
       - if: (startsWith(github.event_name, 'pull_request')) && (startsWith(matrix.kube.runtime, 'Kubernetes'))
         name: Import local agent and controller to Kubernetes
