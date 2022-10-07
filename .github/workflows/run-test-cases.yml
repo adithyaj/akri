@@ -103,6 +103,26 @@ jobs:
       fail-fast: false
       matrix:
         kube:
+          - runtime: MicroK8s-1.21
+            version: 1.21/stable
+          - runtime: MicroK8s-1.22
+            version: 1.22/stable
+          - runtime: MicroK8s-1.23
+            version: 1.23/stable
+          - runtime: MicroK8s-1.24
+            version: 1.24/stable
+          - runtime: MicroK8s-1.25
+            version: 1.25/stable
+          - runtime: K3s-1.21
+            version: v1.21.5+k3s1
+          - runtime: K3s-1.22
+            version: v1.22.6+k3s1
+          - runtime: K3s-1.23
+            version: v1.23.12+k3s1
+          - runtime: K3s-1.24
+            version: v1.24.6+k3s1
+          - runtime: K3s-1.25
+            version: v1.25.2+k3s1
           - runtime: Kubernetes-1.21
             version: 1.21.14-00
           - runtime: Kubernetes-1.22
@@ -248,10 +268,6 @@ jobs:
       - if: (startsWith(github.event_name, 'pull_request')) && (startsWith(matrix.kube.runtime, 'Kubernetes'))
         name: Import local agent and controller to Kubernetes
         run: |
-          sudo docker load --input agent.tar
-          sudo docker load --input controller.tar
-          sudo docker load --input webhook-configuration.tar
-          sudo docker image ls
           # No longer are using docker for container runtime, need to load to containerd with ctr
           # -n allows kubernetes to see the image
           sudo ctr -n=k8s.io image import agent.tar
