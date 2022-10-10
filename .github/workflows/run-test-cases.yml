@@ -103,36 +103,9 @@ jobs:
       fail-fast: false
       matrix:
         kube:
-          - runtime: MicroK8s-1.21
-            version: 1.21/stable
-          - runtime: MicroK8s-1.22
-            version: 1.22/stable
-          - runtime: MicroK8s-1.23
-            version: 1.23/stable
-          - runtime: MicroK8s-1.24
-            version: 1.24/stable
           - runtime: MicroK8s-1.25
             version: 1.25/stable
-          - runtime: K3s-1.21
-            version: v1.21.5+k3s1
-          - runtime: K3s-1.22
-            version: v1.22.6+k3s1
-          - runtime: K3s-1.23
-            version: v1.23.12+k3s1
-          - runtime: K3s-1.24
-            version: v1.24.6+k3s1
-          - runtime: K3s-1.25
-            version: v1.25.2+k3s1
-          - runtime: Kubernetes-1.21
-            version: 1.21.14-00
-          - runtime: Kubernetes-1.22
-            version: 1.22.14-00
-          - runtime: Kubernetes-1.23
-            version: 1.23.11-00
-          - runtime: Kubernetes-1.24
-            version: 1.24.5-00
-          - runtime: Kubernetes-1.25
-            version: 1.25.1-00
+
         test:
           - case: end-to-end
             file: test/run-end-to-end.py
@@ -255,7 +228,7 @@ jobs:
           echo '~/.kube/config' > /tmp/kubeconfig_path_to_test.txt
           until kubectl get node ${HOSTNAME,,} -o jsonpath='{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status}' | grep 'Ready=True'; do echo "waiting for kubernetes to become ready"; sleep 10; done
 
-      - if: always()
+      - if: startsWith(matrix.kube.runtime, 'Kubernetes')
         name: Output System Logs
         run: |
           echo "Kubelet Logs:"
@@ -294,6 +267,14 @@ jobs:
           echo '--set kubernetesDistro=microk8s' > /tmp/k8s_distro_to_test.txt
           echo 'microk8s kubectl' > /tmp/runtime_cmd_to_test.txt
           echo '~/.kube/config' > /tmp/kubeconfig_path_to_test.txt
+
+      - if: startsWith(matrix.kube.runtime, 'MicroK8s')
+        name: Install MicroK8s
+        run: |
+          sudo microk8s status
+          sudo microk8s inspect
+          sudo systemctl status snap.microk8s.daemon-kubelet
+          sudo ls /etc/systemd/system/snap.microk8s*
 
       - if: (startsWith(github.event_name, 'pull_request')) && (startsWith(matrix.kube.runtime, 'MicroK8s'))
         name: Import local agent and controller to MicroK8s
