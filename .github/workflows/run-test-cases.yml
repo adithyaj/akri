@@ -268,12 +268,16 @@ jobs:
           echo 'microk8s kubectl' > /tmp/runtime_cmd_to_test.txt
           echo '~/.kube/config' > /tmp/kubeconfig_path_to_test.txt
 
-      - if: startsWith(matrix.kube.runtime, 'MicroK8s')
-        name: Install MicroK8s
+      - if: always()
+        name: Get MicroK8s Logs
         run: |
           sudo microk8s status
           sudo microk8s inspect
           sudo systemctl status snap.microk8s.daemon-kubelet
+          sudo journalctl -u snap.microk8s.daemon-kubelet
+          sudo journalctl -u snap.microk8s.daemon-apiserver
+          sudo journalctl -u snap.microk8s.daemon-docker
+          sudo journalctl -u snap.microk8s.daemon-proxy
           sudo ls /etc/systemd/system/snap.microk8s*
 
       - if: (startsWith(github.event_name, 'pull_request')) && (startsWith(matrix.kube.runtime, 'MicroK8s'))
